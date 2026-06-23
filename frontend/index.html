@@ -3,71 +3,108 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>nyxx / check</title>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <title>nyxx/check</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Space+Grotesk:wght@400;500;600&display=swap');
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: #08080a;
-      color: #c4c4c7;
-      font-family: 'Space Grotesk', sans-serif;
-      min-height: 100vh;
+
+    :root {
+      --bg: #0a0b0e;
+      --surface: #0f1116;
+      --border: #1a1d25;
+      --text: #b7b9c4;
+      --dim: #4a4d5a;
+      --faint: #252833;
+      --green: #5f8;
+      --red: #e34;
+      --accent: #7c8aff;
     }
 
-    .scanline {
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* CRT simulation */
+    body::after {
+      content: '';
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      top: 0; left: 0; width: 100%; height: 100%;
       background: repeating-linear-gradient(
         0deg,
         transparent,
         transparent 2px,
-        rgba(255,255,255,0.015) 2px,
-        rgba(255,255,255,0.015) 4px
+        rgba(0,255,0,0.008) 2px,
+        rgba(0,255,0,0.008) 4px
       );
       pointer-events: none;
       z-index: 999;
     }
 
     .container {
-      max-width: 880px;
+      max-width: 860px;
       margin: 0 auto;
-      padding: 2.5rem 1.5rem;
+      padding: 2rem 1.5rem;
+      position: relative;
     }
 
+    /* HEADER */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
       margin-bottom: 2.5rem;
-      border-bottom: 1px solid #161618;
       padding-bottom: 1.2rem;
+      border-bottom: 1px solid var(--border);
+      position: relative;
     }
-    .header-left h1 {
-      font-size: 1.4rem;
-      font-weight: 500;
-      color: #fff;
-      letter-spacing: -0.02em;
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      opacity: 0.3;
     }
-    .header-left span {
-      color: #555;
-      font-weight: 400;
-    }
-    .header-left .sub {
-      font-size: 0.75rem;
-      color: #333;
-      margin-top: 0.2rem;
-      font-family: 'JetBrains Mono', monospace;
-    }
-    .status-badge {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
-      color: #333;
-      background: #0e0e10;
-      padding: 0.3rem 0.7rem;
-      border: 1px solid #161618;
-    }
-    .status-badge.online { border-color: #1a3a1a; color: #5f8; }
 
+    .logo {
+      font-size: 1.3rem;
+      color: #fff;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+    .logo slash { color: var(--dim); }
+    .logo span { color: var(--accent); }
+
+    .sub {
+      font-size: 0.65rem;
+      color: var(--dim);
+      letter-spacing: 0.2em;
+      margin-top: 0.3rem;
+      text-transform: uppercase;
+    }
+
+    .sysinfo {
+      text-align: right;
+      font-size: 0.6rem;
+      color: var(--dim);
+      line-height: 1.6;
+    }
+    .sysinfo .dot {
+      display: inline-block;
+      width: 5px; height: 5px;
+      background: var(--green);
+      border-radius: 0;
+      margin-right: 4px;
+      animation: blink 1.2s infinite;
+    }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+    /* FORM */
     .add-form {
       display: flex;
       gap: 0.5rem;
@@ -75,166 +112,188 @@
       flex-wrap: wrap;
     }
     .add-form input {
-      background: #0c0c0e;
-      border: 1px solid #1a1a1c;
-      color: #c4c4c7;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
       padding: 0.7rem 0.9rem;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.85rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
       outline: none;
-      transition: border 0.15s;
-      border-radius: 4px;
+      transition: border 0.2s;
     }
-    .add-form input:focus { border-color: #333; }
-    .add-form input::placeholder { color: #2a2a2a; }
-    .add-form input[type="text"] { flex: 1; min-width: 130px; }
+    .add-form input:focus { border-color: var(--accent); }
+    .add-form input::placeholder { color: var(--faint); }
+    .add-form input[type="text"] { flex: 1; min-width: 120px; }
     .add-form input[type="url"] { flex: 2; min-width: 200px; }
     .add-form button {
-      background: #111113;
-      border: 1px solid #222;
-      color: #c4c4c7;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--accent);
       padding: 0.7rem 1.4rem;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Share Tech Mono', monospace;
       cursor: pointer;
-      font-size: 0.85rem;
-      border-radius: 4px;
-      transition: all 0.15s;
+      font-size: 0.8rem;
+      transition: all 0.2s;
     }
-    .add-form button:hover { background: #1a1a1c; border-color: #333; }
+    .add-form button:hover {
+      background: #14182a;
+      border-color: var(--accent);
+    }
 
+    /* CARDS */
     .card {
-      background: #0b0b0d;
-      border: 1px solid #141416;
-      margin-bottom: 0.5rem;
-      border-radius: 6px;
-      transition: border 0.15s;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      margin-bottom: 0.4rem;
+      position: relative;
+      transition: border 0.2s;
     }
-    .card:hover { border-color: #1e1e20; }
+    .card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 2px;
+      transition: background 0.3s;
+    }
+    .card.up::before { background: var(--green); }
+    .card.down::before { background: var(--red); }
+    .card.pending::before { background: var(--faint); }
 
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1rem 1.2rem;
+      padding: 0.9rem 1.2rem 0.9rem 1.4rem;
       cursor: pointer;
+      min-height: 48px;
     }
-    .card-info { min-width: 0; }
+
+    .card-info { min-width: 0; flex: 1; }
     .card-name {
       color: #fff;
-      font-size: 0.95rem;
-      font-weight: 500;
-      letter-spacing: -0.01em;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
     .card-url {
-      color: #333;
-      font-size: 0.75rem;
+      color: var(--dim);
+      font-size: 0.65rem;
       margin-top: 0.15rem;
-      font-family: 'JetBrains Mono', monospace;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+
     .card-right {
       display: flex;
       align-items: center;
       gap: 1rem;
       flex-shrink: 0;
+      margin-left: 1rem;
     }
     .card-metrics {
       text-align: right;
-      font-family: 'JetBrains Mono', monospace;
     }
     .card-metrics .ms {
-      font-size: 0.8rem;
-      color: #666;
+      font-size: 0.75rem;
+      color: var(--dim);
     }
     .card-metrics .time {
-      font-size: 0.65rem;
-      color: #333;
+      font-size: 0.55rem;
+      color: var(--faint);
       display: block;
       margin-top: 0.1rem;
     }
-    .dot {
-      width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
-    }
-    .dot.up { background: #5f8; box-shadow: 0 0 6px rgba(85,255,136,0.3); }
-    .dot.down { background: #e34; box-shadow: 0 0 6px rgba(238,51,68,0.3); }
-    .dot.pending { background: #2a2a2a; }
 
+    /* CHART / BODY */
     .card-body {
       display: none;
-      padding: 0 1.2rem 1.2rem;
+      padding: 0 1.2rem 1rem 1.4rem;
     }
     .card-body.open { display: block; }
 
-    .card-actions {
+    .card-toolbar {
       display: flex;
-      gap: 0.5rem;
-      margin-bottom: 0.8rem;
+      gap: 1rem;
+      margin-bottom: 0.6rem;
     }
-    .btn-detail {
+    .card-toolbar button {
       background: none;
       border: none;
-      color: #444;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
+      color: var(--faint);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
       cursor: pointer;
-      padding: 0.2rem 0;
-      transition: color 0.15s;
+      padding: 0;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: color 0.2s;
     }
-    .btn-detail:hover { color: #e34; }
-    .btn-detail.delete:hover { color: #e34; }
+    .card-toolbar button:hover { color: var(--red); }
 
-    canvas { width: 100%; height: 100px; border-radius: 4px; }
+    canvas {
+      width: 100%;
+      height: 80px;
+      background: #08090c;
+      border: 1px solid var(--border);
+    }
 
     .empty {
-      color: #1a1a1a;
+      color: var(--faint);
       text-align: center;
-      padding: 4rem 0;
-      font-size: 0.9rem;
-      font-family: 'JetBrains Mono', monospace;
+      padding: 5rem 0;
+      font-size: 0.8rem;
     }
-    .empty span { display: block; margin-top: 1.5rem; font-size: 2rem; }
+    .empty .cursor {
+      display: inline-block;
+      width: 8px; height: 14px;
+      background: var(--dim);
+      animation: blink 1s step-end infinite;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
 
     .toast {
       position: fixed;
       bottom: 1.5rem;
       left: 50%;
       transform: translateX(-50%);
-      background: #111113;
-      border: 1px solid #1a1a1c;
-      color: #666;
-      padding: 0.6rem 1.2rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75rem;
-      border-radius: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--dim);
+      padding: 0.5rem 1rem;
+      font-size: 0.65rem;
       opacity: 0;
       transition: opacity 0.3s;
       pointer-events: none;
+      z-index: 100;
     }
     .toast.show { opacity: 1; }
 
     @media (max-width: 500px) {
       .container { padding: 1.5rem 1rem; }
       .add-form input { min-width: 100% !important; }
-      .card-header { flex-wrap: wrap; gap: 0.5rem; }
+      .header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+      .sysinfo { text-align: left; width: 100%; }
     }
   </style>
 </head>
 <body>
-  <div class="scanline"></div>
   <div class="container">
     <div class="header">
-      <div class="header-left">
-        <h1>nyxx/<span>check</span></h1>
-        <div class="sub">uptime monitor</div>
+      <div>
+        <div class="logo">nyxx<slash>/</slash><span>check</span></div>
+        <div class="sub">uptime surveillance</div>
       </div>
-      <div class="status-badge">● online</div>
+      <div class="sysinfo">
+        <span class="dot"></span> system online<br>
+        watching <span id="targetCount">0</span> targets
+      </div>
     </div>
 
     <form class="add-form" id="addForm">
       <input type="text" id="nameInput" placeholder="label" required>
-      <input type="url" id="urlInput" placeholder="https://" required>
+      <input type="url" id="urlInput" placeholder="https://target" required>
       <button type="submit">+ track</button>
     </form>
 
@@ -246,7 +305,7 @@
   <script>
     const API = window.location.origin
     const historyCache = {}
-    let toastTimer
+    let toastTimer, lastUrls = []
 
     function fmtTime(ts) {
       if (!ts) return ''
@@ -257,7 +316,7 @@
 
     function showToast(msg) {
       const el = document.getElementById('toast')
-      el.textContent = msg
+      el.textContent = '> ' + msg
       el.classList.add('show')
       clearTimeout(toastTimer)
       toastTimer = setTimeout(() => el.classList.remove('show'), 2000)
@@ -265,11 +324,14 @@
 
     async function load() {
       const res = await fetch(`${API}/api/checks`)
-      if (!res.ok) { showToast('failed to fetch'); return }
+      if (!res.ok) { showToast('connection lost'); return }
       const urls = await res.json()
+      lastUrls = urls
+      document.getElementById('targetCount').textContent = urls.length
+
       const list = document.getElementById('list')
       if (urls.length === 0) {
-        list.innerHTML = '<div class="empty">no targets<span>_</span></div>'
+        list.innerHTML = '<div class="empty">awaiting targets<span class="cursor"></span></div>'
         return
       }
 
@@ -279,14 +341,14 @@
           historyCache[u.id] = hRes.ok ? await hRes.json() : []
         }
       })
-      await Promise.all(fetches)
+      await Promise.allSettled(fetches)
 
       list.innerHTML = urls.map(u => {
         const h = historyCache[u.id] || []
         const last = h.length > 0 ? h[h.length - 1] : null
         const statusClass = last && last.status >= 200 && last.status < 400 ? 'up' : (last ? 'down' : 'pending')
         return `
-          <div class="card" data-id="${u.id}">
+          <div class="card ${statusClass}" data-id="${u.id}">
             <div class="card-header" onclick="toggle(${u.id})">
               <div class="card-info">
                 <div class="card-name">${u.name}</div>
@@ -294,15 +356,15 @@
               </div>
               <div class="card-right">
                 <div class="card-metrics">
-                  <span class="ms">${last ? last.responseTime + 'ms' : '---'}</span>
+                  <span class="ms">${last ? last.responseTime + 'ms' : '--'}</span>
                   <span class="time">${last ? fmtTime(last.timestamp) : ''}</span>
                 </div>
-                <div class="dot ${statusClass}"></div>
               </div>
             </div>
             <div class="card-body" id="body-${u.id}">
-              <div class="card-actions">
-                <button class="btn-detail delete" onclick="removeUrl(${u.id})">[ delete ]</button>
+              <div class="card-toolbar">
+                <button onclick="removeUrl(${u.id})">[ delete ]</button>
+                <button onclick="updateChart(${u.id})">[ refresh ]</button>
               </div>
               <canvas id="chart-${u.id}"></canvas>
             </div>
@@ -313,56 +375,64 @@
       urls.forEach(u => drawChart(u.id, historyCache[u.id] || []))
     }
 
+    async function updateChart(id) {
+      delete historyCache[id]
+      const hRes = await fetch(`${API}/api/checks/${id}/history`)
+      historyCache[id] = hRes.ok ? await hRes.json() : []
+      drawChart(id, historyCache[id])
+    }
+
     function drawChart(id, data) {
       const canvas = document.getElementById(`chart-${id}`)
       if (!canvas) return
       const ctx = canvas.getContext('2d')
       const dpr = window.devicePixelRatio || 1
-      const rect = canvas.parentElement.getBoundingClientRect()
-      const w = Math.max(rect.width - 40, 100)
+      const rect = canvas.getBoundingClientRect()
+      const w = Math.max(rect.width, 100)
       canvas.width = w * dpr
-      canvas.height = 100 * dpr
+      canvas.height = 80 * dpr
       ctx.scale(dpr, dpr)
-      const h = 100
 
-      ctx.clearRect(0, 0, w, h)
+      ctx.clearRect(0, 0, w, 80)
 
       if (data.length < 2) {
-        ctx.fillStyle = '#1a1a1a'
-        ctx.font = '11px JetBrains Mono, monospace'
+        ctx.fillStyle = '#252833'
+        ctx.font = '9px Share Tech Mono, monospace'
         ctx.textAlign = 'center'
-        ctx.fillText('awaiting data', w/2, h/2 + 4)
+        ctx.fillText('-- no data --', w/2, 44)
         return
       }
 
       const times = data.map(d => d.responseTime || 0)
       const max = Math.max(...times, 1)
-      const barW = Math.min(6, (w - 20) / times.length)
+      const barW = Math.min(8, (w - 20) / times.length)
+      const gap = Math.min(barW * 0.3, 2)
 
       times.forEach((t, i) => {
-        const x = 10 + i * (barW + 1)
-        const barH = (t / max) * (h - 20)
+        const x = 10 + i * (barW + gap)
+        const barH = (t / max) * 60
         const status = data[i].status
-        ctx.fillStyle = status >= 200 && status < 400 ? 'rgba(85,255,136,0.6)' : 'rgba(238,51,68,0.6)'
-        ctx.fillRect(x, h - 10 - barH, barW, barH)
+        ctx.fillStyle = status >= 200 && status < 400
+          ? '#5f8'
+          : '#e34'
+        ctx.globalAlpha = 0.4 + (t / max) * 0.6
+        ctx.fillRect(x, 70 - barH, barW, barH)
       })
+      ctx.globalAlpha = 1
     }
 
     function toggle(id) {
       const el = document.getElementById(`body-${id}`)
       el.classList.toggle('open')
       if (el.classList.contains('open')) {
-        setTimeout(() => {
-          const uId = id
-          drawChart(uId, historyCache[uId] || [])
-        }, 50)
+        setTimeout(() => drawChart(id, historyCache[id] || []), 50)
       }
     }
 
     async function removeUrl(id) {
       const res = await fetch(`${API}/api/checks/${id}`, { method: 'DELETE' })
       if (res.ok) { delete historyCache[id]; showToast('deleted'); load() }
-      else showToast('delete failed')
+      else showToast('error')
     }
 
     document.getElementById('addForm').addEventListener('submit', async (e) => {
@@ -378,9 +448,9 @@
       if (res.ok) {
         document.getElementById('nameInput').value = ''
         document.getElementById('urlInput').value = ''
-        showToast('target added')
+        showToast('tracking started')
         load()
-      } else showToast('failed to add')
+      } else showToast('failed')
     })
 
     load()
