@@ -4,28 +4,69 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>nyxx / check</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      background: #0a0a0a;
-      color: #c5c8c6;
-      font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
-      padding: 2rem;
+      background: #08080a;
+      color: #c4c4c7;
+      font-family: 'Space Grotesk', sans-serif;
       min-height: 100vh;
     }
-    .container { max-width: 800px; margin: 0 auto; }
+
+    .scanline {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(255,255,255,0.015) 2px,
+        rgba(255,255,255,0.015) 4px
+      );
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .container {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
 
     .header {
-      margin-bottom: 2rem;
-      border-bottom: 1px solid #1a1a1a;
-      padding-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 2.5rem;
+      border-bottom: 1px solid #161618;
+      padding-bottom: 1.2rem;
     }
-    .header h1 {
-      font-size: 1.5rem;
-      font-weight: 400;
+    .header-left h1 {
+      font-size: 1.4rem;
+      font-weight: 500;
       color: #fff;
+      letter-spacing: -0.02em;
     }
-    .header span { color: #555; }
+    .header-left span {
+      color: #555;
+      font-weight: 400;
+    }
+    .header-left .sub {
+      font-size: 0.75rem;
+      color: #333;
+      margin-top: 0.2rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .status-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: #333;
+      background: #0e0e10;
+      padding: 0.3rem 0.7rem;
+      border: 1px solid #161618;
+    }
+    .status-badge.online { border-color: #1a3a1a; color: #5f8; }
 
     .add-form {
       display: flex;
@@ -34,110 +75,178 @@
       flex-wrap: wrap;
     }
     .add-form input {
-      background: #111;
-      border: 1px solid #222;
-      color: #c5c8c6;
-      padding: 0.6rem 0.8rem;
-      font-family: inherit;
+      background: #0c0c0e;
+      border: 1px solid #1a1a1c;
+      color: #c4c4c7;
+      padding: 0.7rem 0.9rem;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 0.85rem;
       outline: none;
+      transition: border 0.15s;
+      border-radius: 4px;
     }
-    .add-form input:focus { border-color: #444; }
-    .add-form input[type="text"] { flex: 1; min-width: 140px; }
+    .add-form input:focus { border-color: #333; }
+    .add-form input::placeholder { color: #2a2a2a; }
+    .add-form input[type="text"] { flex: 1; min-width: 130px; }
     .add-form input[type="url"] { flex: 2; min-width: 200px; }
     .add-form button {
-      background: #1a1a1a;
-      border: 1px solid #333;
-      color: #c5c8c6;
-      padding: 0.6rem 1.2rem;
-      font-family: inherit;
+      background: #111113;
+      border: 1px solid #222;
+      color: #c4c4c7;
+      padding: 0.7rem 1.4rem;
+      font-family: 'Space Grotesk', sans-serif;
       cursor: pointer;
       font-size: 0.85rem;
+      border-radius: 4px;
+      transition: all 0.15s;
     }
-    .add-form button:hover { background: #222; }
+    .add-form button:hover { background: #1a1a1c; border-color: #333; }
 
     .card {
-      background: #0e0e0e;
-      border: 1px solid #1a1a1a;
-      margin-bottom: 0.6rem;
-      padding: 1rem;
+      background: #0b0b0d;
+      border: 1px solid #141416;
+      margin-bottom: 0.5rem;
+      border-radius: 6px;
+      transition: border 0.15s;
     }
+    .card:hover { border-color: #1e1e20; }
+
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      padding: 1rem 1.2rem;
       cursor: pointer;
     }
-    .card-name { color: #fff; font-size: 1rem; }
-    .card-url { color: #555; font-size: 0.8rem; margin-top: 0.2rem; }
-    .card-status {
+    .card-info { min-width: 0; }
+    .card-name {
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    .card-url {
+      color: #333;
+      font-size: 0.75rem;
+      margin-top: 0.15rem;
+      font-family: 'JetBrains Mono', monospace;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .card-right {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 1rem;
+      flex-shrink: 0;
     }
-    .indicator {
-      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    .card-metrics {
+      text-align: right;
+      font-family: 'JetBrains Mono', monospace;
     }
-    .indicator.up { background: #5f8; }
-    .indicator.down { background: #e34; }
-    .indicator.pending { background: #555; }
-    .card-meta {
-      font-size: 0.75rem; color: #555; text-align: right;
+    .card-metrics .ms {
+      font-size: 0.8rem;
+      color: #666;
     }
-    .card-meta span { display: block; }
+    .card-metrics .time {
+      font-size: 0.65rem;
+      color: #333;
+      display: block;
+      margin-top: 0.1rem;
+    }
+    .dot {
+      width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    }
+    .dot.up { background: #5f8; box-shadow: 0 0 6px rgba(85,255,136,0.3); }
+    .dot.down { background: #e34; box-shadow: 0 0 6px rgba(238,51,68,0.3); }
+    .dot.pending { background: #2a2a2a; }
 
-    .card-details {
+    .card-body {
       display: none;
-      margin-top: 1rem;
-      border-top: 1px solid #1a1a1a;
-      padding-top: 1rem;
+      padding: 0 1.2rem 1.2rem;
     }
-    .card-details.open { display: block; }
+    .card-body.open { display: block; }
 
-    .delete-btn {
+    .card-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.8rem;
+    }
+    .btn-detail {
       background: none;
       border: none;
-      color: #e34;
-      font-family: inherit;
-      font-size: 0.75rem;
+      color: #444;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
       cursor: pointer;
-      opacity: 0.4;
+      padding: 0.2rem 0;
+      transition: color 0.15s;
     }
-    .delete-btn:hover { opacity: 1; }
+    .btn-detail:hover { color: #e34; }
+    .btn-detail.delete:hover { color: #e34; }
 
-    canvas { width: 100%; height: 120px; margin-top: 0.5rem; }
+    canvas { width: 100%; height: 100px; border-radius: 4px; }
 
     .empty {
-      color: #333;
+      color: #1a1a1a;
       text-align: center;
-      padding: 3rem 0;
+      padding: 4rem 0;
       font-size: 0.9rem;
+      font-family: 'JetBrains Mono', monospace;
     }
+    .empty span { display: block; margin-top: 1.5rem; font-size: 2rem; }
+
+    .toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111113;
+      border: 1px solid #1a1a1c;
+      color: #666;
+      padding: 0.6rem 1.2rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      border-radius: 6px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
 
     @media (max-width: 500px) {
-      body { padding: 1rem; }
+      .container { padding: 1.5rem 1rem; }
       .add-form input { min-width: 100% !important; }
+      .card-header { flex-wrap: wrap; gap: 0.5rem; }
     }
   </style>
 </head>
 <body>
+  <div class="scanline"></div>
   <div class="container">
     <div class="header">
-      <h1>nyxx/<span>check</span></h1>
+      <div class="header-left">
+        <h1>nyxx/<span>check</span></h1>
+        <div class="sub">uptime monitor</div>
+      </div>
+      <div class="status-badge">● online</div>
     </div>
 
     <form class="add-form" id="addForm">
-      <input type="text" id="nameInput" placeholder="name" required>
-      <input type="url" id="urlInput" placeholder="https://example.com" required>
-      <button type="submit">+ add</button>
+      <input type="text" id="nameInput" placeholder="label" required>
+      <input type="url" id="urlInput" placeholder="https://" required>
+      <button type="submit">+ track</button>
     </form>
 
     <div id="list"></div>
   </div>
 
+  <div class="toast" id="toast"></div>
+
   <script>
     const API = window.location.origin
     const historyCache = {}
+    let toastTimer
 
     function fmtTime(ts) {
       if (!ts) return ''
@@ -146,21 +255,31 @@
       return new Date(ts).toLocaleTimeString()
     }
 
+    function showToast(msg) {
+      const el = document.getElementById('toast')
+      el.textContent = msg
+      el.classList.add('show')
+      clearTimeout(toastTimer)
+      toastTimer = setTimeout(() => el.classList.remove('show'), 2000)
+    }
+
     async function load() {
       const res = await fetch(`${API}/api/checks`)
+      if (!res.ok) { showToast('failed to fetch'); return }
       const urls = await res.json()
       const list = document.getElementById('list')
       if (urls.length === 0) {
-        list.innerHTML = '<div class="empty">no targets yet</div>'
+        list.innerHTML = '<div class="empty">no targets<span>_</span></div>'
         return
       }
 
-      for (const u of urls) {
+      const fetches = urls.map(async u => {
         if (!historyCache[u.id]) {
           const hRes = await fetch(`${API}/api/checks/${u.id}/history`)
-          historyCache[u.id] = await hRes.json()
+          historyCache[u.id] = hRes.ok ? await hRes.json() : []
         }
-      }
+      })
+      await Promise.all(fetches)
 
       list.innerHTML = urls.map(u => {
         const h = historyCache[u.id] || []
@@ -169,29 +288,29 @@
         return `
           <div class="card" data-id="${u.id}">
             <div class="card-header" onclick="toggle(${u.id})">
-              <div>
+              <div class="card-info">
                 <div class="card-name">${u.name}</div>
                 <div class="card-url">${u.url}</div>
               </div>
-              <div class="card-status">
-                <div class="card-meta">
-                  <span>${last ? last.responseTime + 'ms' : '---'}</span>
-                  <span style="font-size:0.65rem">${last ? fmtTime(last.timestamp) : ''}</span>
+              <div class="card-right">
+                <div class="card-metrics">
+                  <span class="ms">${last ? last.responseTime + 'ms' : '---'}</span>
+                  <span class="time">${last ? fmtTime(last.timestamp) : ''}</span>
                 </div>
-                <div class="indicator ${statusClass}"></div>
+                <div class="dot ${statusClass}"></div>
               </div>
             </div>
-            <div class="card-details" id="details-${u.id}">
-              <button class="delete-btn" onclick="removeUrl(${u.id})">delete</button>
+            <div class="card-body" id="body-${u.id}">
+              <div class="card-actions">
+                <button class="btn-detail delete" onclick="removeUrl(${u.id})">[ delete ]</button>
+              </div>
               <canvas id="chart-${u.id}"></canvas>
             </div>
           </div>
         `
       }).join('')
 
-      for (const u of urls) {
-        drawChart(u.id, historyCache[u.id] || [])
-      }
+      urls.forEach(u => drawChart(u.id, historyCache[u.id] || []))
     }
 
     function drawChart(id, data) {
@@ -199,50 +318,51 @@
       if (!canvas) return
       const ctx = canvas.getContext('2d')
       const dpr = window.devicePixelRatio || 1
-      const rect = canvas.getBoundingClientRect()
-      canvas.width = rect.width * dpr
-      canvas.height = 120 * dpr
+      const rect = canvas.parentElement.getBoundingClientRect()
+      const w = Math.max(rect.width - 40, 100)
+      canvas.width = w * dpr
+      canvas.height = 100 * dpr
       ctx.scale(dpr, dpr)
-      const w = rect.width, h = 120
+      const h = 100
 
       ctx.clearRect(0, 0, w, h)
 
       if (data.length < 2) {
-        ctx.fillStyle = '#333'
-        ctx.font = '11px monospace'
+        ctx.fillStyle = '#1a1a1a'
+        ctx.font = '11px JetBrains Mono, monospace'
         ctx.textAlign = 'center'
-        ctx.fillText('waiting for data...', w/2, h/2)
+        ctx.fillText('awaiting data', w/2, h/2 + 4)
         return
       }
 
       const times = data.map(d => d.responseTime || 0)
       const max = Math.max(...times, 1)
-      const barW = Math.min(4, (w - 20) / times.length)
-
-      ctx.fillStyle = '#1a1a1a'
-      ctx.fillRect(0, 0, w, h)
+      const barW = Math.min(6, (w - 20) / times.length)
 
       times.forEach((t, i) => {
         const x = 10 + i * (barW + 1)
         const barH = (t / max) * (h - 20)
         const status = data[i].status
-        ctx.fillStyle = status >= 200 && status < 400 ? '#5f8' : '#e34'
+        ctx.fillStyle = status >= 200 && status < 400 ? 'rgba(85,255,136,0.6)' : 'rgba(238,51,68,0.6)'
         ctx.fillRect(x, h - 10 - barH, barW, barH)
       })
     }
 
     function toggle(id) {
-      const el = document.getElementById(`details-${id}`)
+      const el = document.getElementById(`body-${id}`)
       el.classList.toggle('open')
       if (el.classList.contains('open')) {
-        setTimeout(() => load(), 100)
+        setTimeout(() => {
+          const uId = id
+          drawChart(uId, historyCache[uId] || [])
+        }, 50)
       }
     }
 
     async function removeUrl(id) {
-      await fetch(`${API}/api/checks/${id}`, { method: 'DELETE' })
-      delete historyCache[id]
-      load()
+      const res = await fetch(`${API}/api/checks/${id}`, { method: 'DELETE' })
+      if (res.ok) { delete historyCache[id]; showToast('deleted'); load() }
+      else showToast('delete failed')
     }
 
     document.getElementById('addForm').addEventListener('submit', async (e) => {
@@ -250,14 +370,17 @@
       const name = document.getElementById('nameInput').value.trim()
       const url = document.getElementById('urlInput').value.trim()
       if (!name || !url) return
-      await fetch(`${API}/api/checks`, {
+      const res = await fetch(`${API}/api/checks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, url })
       })
-      document.getElementById('nameInput').value = ''
-      document.getElementById('urlInput').value = ''
-      load()
+      if (res.ok) {
+        document.getElementById('nameInput').value = ''
+        document.getElementById('urlInput').value = ''
+        showToast('target added')
+        load()
+      } else showToast('failed to add')
     })
 
     load()
