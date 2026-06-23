@@ -4,7 +4,7 @@ const path = require('path')
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') })
 
 const { getUrls, addUrl, deleteUrl, getHistory } = require('./db')
-const { startCron } = require('./cron')
+const { startCron, runPings } = require('./cron')
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -46,6 +46,20 @@ app.get('/api/checks/:id/history', async (req, res) => {
   try {
     const data = await getHistory(req.params.id)
     res.json(data)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+app.get('/api/cron', async (req, res) => {
+  // Verify Vercel Cron Secret if configured
+  const authHeader = req.headers.authorization
+  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
+  try {
+    const results = await runPings()
+    res.json({ success: true, results })
   } catch (err) {
     res.status(500).json({ error: err.message })
   }
