@@ -139,6 +139,13 @@
     const API = window.location.origin
     const historyCache = {}
 
+    function fmtTime(ts) {
+      if (!ts) return ''
+      if (ts._seconds) return new Date(ts._seconds * 1000).toLocaleTimeString()
+      if (ts.seconds) return new Date(ts.seconds * 1000).toLocaleTimeString()
+      return new Date(ts).toLocaleTimeString()
+    }
+
     async function load() {
       const res = await fetch(`${API}/api/checks`)
       const urls = await res.json()
@@ -168,8 +175,8 @@
               </div>
               <div class="card-status">
                 <div class="card-meta">
-                  <span>${last ? last.response_time + 'ms' : '---'}</span>
-                  <span style="font-size:0.65rem">${last ? new Date(last.timestamp).toLocaleTimeString() : ''}</span>
+                  <span>${last ? last.responseTime + 'ms' : '---'}</span>
+                  <span style="font-size:0.65rem">${last ? fmtTime(last.timestamp) : ''}</span>
                 </div>
                 <div class="indicator ${statusClass}"></div>
               </div>
@@ -208,7 +215,7 @@
         return
       }
 
-      const times = data.map(d => d.response_time || 0)
+      const times = data.map(d => d.responseTime || 0)
       const max = Math.max(...times, 1)
       const barW = Math.min(4, (w - 20) / times.length)
 
