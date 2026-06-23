@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>nyxx / check</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a0a;
+      color: #c5c8c6;
+      font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+      padding: 2rem;
+      min-height: 100vh;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+
+    .header {
+      margin-bottom: 2rem;
+      border-bottom: 1px solid #1a1a1a;
+      padding-bottom: 1rem;
+    }
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: #fff;
+    }
+    .header span { color: #555; }
+
+    .add-form {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+    .add-form input {
+      background: #111;
+      border: 1px solid #222;
+      color: #c5c8c6;
+      padding: 0.6rem 0.8rem;
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .add-form input:focus { border-color: #444; }
+    .add-form input[type="text"] { flex: 1; min-width: 140px; }
+    .add-form input[type="url"] { flex: 2; min-width: 200px; }
+    .add-form button {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: #c5c8c6;
+      padding: 0.6rem 1.2rem;
+      font-family: inherit;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .add-form button:hover { background: #222; }
+
+    .card {
+      background: #0e0e0e;
+      border: 1px solid #1a1a1a;
+      margin-bottom: 0.6rem;
+      padding: 1rem;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+    .card-name { color: #fff; font-size: 1rem; }
+    .card-url { color: #555; font-size: 0.8rem; margin-top: 0.2rem; }
+    .card-status {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .indicator {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .indicator.up { background: #5f8; }
+    .indicator.down { background: #e34; }
+    .indicator.pending { background: #555; }
+    .card-meta {
+      font-size: 0.75rem; color: #555; text-align: right;
+    }
+    .card-meta span { display: block; }
+
+    .card-details {
+      display: none;
+      margin-top: 1rem;
+      border-top: 1px solid #1a1a1a;
+      padding-top: 1rem;
+    }
+    .card-details.open { display: block; }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #e34;
+      font-family: inherit;
+      font-size: 0.75rem;
+      cursor: pointer;
+      opacity: 0.4;
+    }
+    .delete-btn:hover { opacity: 1; }
+
+    canvas { width: 100%; height: 120px; margin-top: 0.5rem; }
+
+    .empty {
+      color: #333;
+      text-align: center;
+      padding: 3rem 0;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 500px) {
+      body { padding: 1rem; }
+      .add-form input { min-width: 100% !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>nyxx/<span>check</span></h1>
+    </div>
+
+    <form class="add-form" id="addForm">
+      <input type="text" id="nameInput" placeholder="name" required>
+      <input type="url" id="urlInput" placeholder="https://example.com" required>
+      <button type="submit">+ add</button>
+    </form>
+
+    <div id="list"></div>
+  </div>
+
+  <script>
+    const API = window.location.origin
+    const historyCache = {}
+
+    async function load() {
+      const res = await fetch(`${API}/api/checks`)
+      const urls = await res.json()
+      const list = document.getElementById('list')
+      if (urls.length === 0) {
+        list.innerHTML = '<div class="empty">no targets yet</div>'
+        return
+      }
+
+      for (const u of urls) {
+        if (!historyCache[u.id]) {
+          const hRes = await fetch(`${API}/api/checks/${u.id}/history`)
+          historyCache[u.id] = await hRes.json()
+        }
+      }
+
+      list.innerHTML = urls.map(u => {
+        const h = historyCache[u.id] || []
+        const last = h.length > 0 ? h[h.length - 1] : null
+        const statusClass = last && last.status >= 200 && last.status < 400 ? 'up' : (last ? 'down' : 'pending')
+        return `
+          <div class="card" data-id="${u.id}">
+            <div class="card-header" onclick="toggle(${u.id})">
+              <div>
+                <div class="card-name">${u.name}</div>
+                <div class="card-url">${u.url}</div>
+              </div>
+              <div class="card-status">
+                <div class="card-meta">
+                  <span>${last ? last.response_time + 'ms' : '---'}</span>
+                  <span style="font-size:0.65rem">${last ? new Date(last.timestamp).toLocaleTimeString() : ''}</span>
+                </div>
+                <div class="indicator ${statusClass}"></div>
+              </div>
+            </div>
+            <div class="card-details" id="details-${u.id}">
+              <button class="delete-btn" onclick="removeUrl(${u.id})">delete</button>
+              <canvas id="chart-${u.id}"></canvas>
+            </div>
+          </div>
+        `
+      }).join('')
+
+      for (const u of urls) {
+        drawChart(u.id, historyCache[u.id] || [])
+      }
+    }
+
+    function drawChart(id, data) {
+      const canvas = document.getElementById(`chart-${id}`)
+      if (!canvas) return
+      const ctx = canvas.getContext('2d')
+      const dpr = window.devicePixelRatio || 1
+      const rect = canvas.getBoundingClientRect()
+      canvas.width = rect.width * dpr
+      canvas.height = 120 * dpr
+      ctx.scale(dpr, dpr)
+      const w = rect.width, h = 120
+
+      ctx.clearRect(0, 0, w, h)
+
+      if (data.length < 2) {
+        ctx.fillStyle = '#333'
+        ctx.font = '11px monospace'
+        ctx.textAlign = 'center'
+        ctx.fillText('waiting for data...', w/2, h/2)
+        return
+      }
+
+      const times = data.map(d => d.response_time || 0)
+      const max = Math.max(...times, 1)
+      const barW = Math.min(4, (w - 20) / times.length)
+
+      ctx.fillStyle = '#1a1a1a'
+      ctx.fillRect(0, 0, w, h)
+
+      times.forEach((t, i) => {
+        const x = 10 + i * (barW + 1)
+        const barH = (t / max) * (h - 20)
+        const status = data[i].status
+        ctx.fillStyle = status >= 200 && status < 400 ? '#5f8' : '#e34'
+        ctx.fillRect(x, h - 10 - barH, barW, barH)
+      })
+    }
+
+    function toggle(id) {
+      const el = document.getElementById(`details-${id}`)
+      el.classList.toggle('open')
+      if (el.classList.contains('open')) {
+        setTimeout(() => load(), 100)
+      }
+    }
+
+    async function removeUrl(id) {
+      await fetch(`${API}/api/checks/${id}`, { method: 'DELETE' })
+      delete historyCache[id]
+      load()
+    }
+
+    document.getElementById('addForm').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const name = document.getElementById('nameInput').value.trim()
+      const url = document.getElementById('urlInput').value.trim()
+      if (!name || !url) return
+      await fetch(`${API}/api/checks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, url })
+      })
+      document.getElementById('nameInput').value = ''
+      document.getElementById('urlInput').value = ''
+      load()
+    })
+
+    load()
+    setInterval(load, 15000)
+  </script>
+</body>
+</html>
